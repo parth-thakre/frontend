@@ -1,0 +1,40 @@
+.container .single-day-calendar {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #1c1c1e;
+  color: white;
+  border: none;
+}
+
+.container .calendar-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.container .tasks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.container .task-item {
+  background-color: #2c2c2e;
+  border-radius: 8px;
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.container .task-time {
+  font-size: 14px;
+  color: #a0a0a0;
+}
+
+.container .task-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #ffffff;
+}

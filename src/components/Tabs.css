@@ -1,0 +1,78 @@
+.tabs {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.file-input {
+  text-align: center;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.file-input input[type="file"] {
+  display: none; /* Hide the default file input */
+}
+
+.custom-file-upload {
+  border: 1px solid #ccc;
+  display: inline-block;
+  padding: 6px 12px;
+  cursor: pointer;
+  background-color: #2c2c2e;
+  color: white;
+  border-radius: 8px;
+  transition: background-color 0.3s;
+}
+
+.custom-file-upload:hover {
+  background-color: #3a3a3c;
+}
+
+/* Style for the file status message */
+.file-status {
+  display: block;
+  margin-top: 10px;
+  color: #4caf50; /* Green color for success */
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* Style for the error message */
+.file-error {
+  display: block;
+  margin-top: 10px;
+  color: #f44336; /* Red color for errors */
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.tab-buttons {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.tab-buttons button {
+  background-color: #2c2c2e;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 16px;
+  margin: 0 5px;
+  border-radius: 8px;
+  transition: background-color 0.3s;
+}
+
+.tab-buttons button.active {
+  background-color: #3a3a3c;
+}
+
+.tab-content {
+  background-color: #1c1c1e;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  color: white;
+}
