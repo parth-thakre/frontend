@@ -248,68 +248,7 @@ def extract_event_details(sentence):
 
     return result
 
-    """ Extract event details from the sentence, including cancelled events. """
-    doc = nlp(sentence)
-    dates = [ent.text for ent in doc.ents if ent.label_ == "DATE"]
-    time = [ent.text for ent in doc.ents if ent.label_ == "TIME"]
-    today = datetime.today()
-    formatted_dates = []
-
-    matches = matcher(doc)
-    events = []
     
-    # Check if the sentence contains the word "cancelled"
-    is_cancelled = any(token.text.lower() in ["cancelled", "canceled"] for token in doc)
-    
-    # Extract matches based on defined patterns
-    for match_id, start, end in matches:
-        span = doc[start:end]
-        event_text = span.text.strip()
-        if event_text and event_text not in events:
-            events.append(event_text)
-
-    # If no matches found, convert verbs to nouns
-    if not events:
-        verbs = [token.text for token in doc if token.pos_ == "VERB"]
-        if verbs:
-            event = convert_verbs_to_nouns(verbs[0])
-            if event:
-                events.append(event)
-    
-    # Mark the event as cancelled if applicable
-    if is_cancelled:
-        events = [f"{event} (Cancelled)" for event in events]
-
-    # Process dates and format them
-    for date_str in dates:
-        if "next week" in date_str.lower():
-            formatted_dates.append((date_str, get_next_monday(today).strftime("%d-%m-%y")))
-        elif "next month" in date_str.lower():
-            formatted_dates.append((date_str, get_first_day_of_next_month(today).strftime("%d-%m-%y")))
-        elif any(day in date_str.lower() for day in days_of_week):
-            for day_name in days_of_week:
-                if day_name in date_str.lower():
-                    next_day = get_next_day_by_name(today, day_name)
-                    if next_day:
-                        formatted_dates.append((date_str, next_day.strftime("%d-%m-%y")))
-        else:
-            parsed_date = parse(date_str, settings={'RELATIVE_BASE': today})
-            if parsed_date:
-                formatted_dates.append((date_str, parsed_date.strftime("%d-%m-%y")))
-
-    # Convert time phrases
-    formatted_time = [convert_time_phrases(t) for t in time]
-
-    # Summarize the event
-    summarized_event = convert_verbs_to_nouns(sentence)
-
-    result = {
-        "Event": summarized_event if summarized_event else "No Event",
-        "Date": ', '.join([d[1] for d in formatted_dates]) if formatted_dates else "No Date",
-        "Time": ', '.join(formatted_time) if formatted_time else "No Time"
-    }
-
-    return result
 
 
 
@@ -332,19 +271,16 @@ def summarize_text(text):
     summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
     
     # Calculate the lengths
-    max_input_length = 1024
-    min_summary_length = 50
-    max_summary_length = 200
-
-    # Break text into chunks if needed
-    inputs = [text[i:i+max_input_length] for i in range(0, len(text), max_input_length)]
-
-    summary = ""
-    for input_text in inputs:
-        summary_chunk = summarizer(input_text, max_length=max_summary_length, min_length=min_summary_length, do_sample=False)[0]['summary_text']
-        summary += summary_chunk + " "
-
-    return summary.strip()
+    text_length = len(text.split())  # Number of words in the text
+    target_length = int(text_length * 0.4)  # 40% of original length
+    
+    # Set minimum and maximum lengths for summarization
+    max_length = max(target_length, 50)  # Ensure max_length is not too small
+    min_length = max(target_length // 2, 20)  # Ensure min_length is not too small
+    
+    # Generate summary
+    summary = summarizer(text, max_length=max_length, min_length=min_length, do_sample=False)
+    return summary[0]['summary_text']
 
 # Flask routes
 @app.route('/summarize', methods=['POST'])
