@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { format } from "date-fns"; // Import date-fns for formatting
+import { ChevronDownIcon } from "@heroicons/react/24/solid";
 import "./Calendar.css";
 
 interface Task {
@@ -14,15 +16,19 @@ interface CalendarProps {
 
 const Calendar: React.FC<CalendarProps> = ({ text }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [date, setDate] = useState<string>("");
+  const [groupedTasks, setGroupedTasks] = useState<{ [key: string]: Task[] }>(
+    {}
+  );
+  const [expandedDates, setExpandedDates] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await axios.post("http://localhost:5000/events", { text });
+        const response = await axios.post("http://localhost:5000/events", {
+          text,
+        });
         const schedule = response.data.events;
 
-        // Map the events to extract task details (event, date, time)
         const formattedTasks = schedule.map((event: any) => ({
           time: event.Time || "No Time",
           title: event.Event || "No Event",
@@ -31,13 +37,16 @@ const Calendar: React.FC<CalendarProps> = ({ text }) => {
 
         setTasks(formattedTasks);
 
-        // If there's a date provided by the events, set it
-        if (formattedTasks.length > 0 && formattedTasks[0].date !== "No Date") {
-          setDate(formattedTasks[0].date);
-        } else {
-          // Fallback to a default or current date
-          setDate(new Date().toISOString().split('T')[0]);
-        }
+        const grouped = formattedTasks.reduce((acc: any, task: Task) => {
+          const taskDate = task.date || "No Date";
+          if (!acc[taskDate]) {
+            acc[taskDate] = [];
+          }
+          acc[taskDate].push(task);
+          return acc;
+        }, {});
+
+        setGroupedTasks(grouped);
       } catch (error) {
         console.error("Error fetching events:", error);
       }
@@ -46,33 +55,75 @@ const Calendar: React.FC<CalendarProps> = ({ text }) => {
     fetchEvents();
   }, [text]);
 
+  const toggleDateExpansion = (date: string) => {
+    if (expandedDates.includes(date)) {
+      setExpandedDates(expandedDates.filter((d) => d !== date));
+    } else {
+      setExpandedDates([...expandedDates, date]);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    if (!dateString || dateString === "No Date") {
+      return "No Date";
+    }
+
+    try {
+      const parts = dateString.split("-");
+      if (parts.length === 3) {
+        const day = parts[0];
+        const month = parts[1];
+        const year = `20${parts[2]}`; // Assuming the year is in 20XX format
+
+        const formattedDateString = `${year}-${month}-${day}`;
+        const parsedDate = new Date(formattedDateString);
+
+        if (isNaN(parsedDate.getTime())) {
+          return "Invalid Date";
+        }
+
+        return format(parsedDate, "EEEE, d MMMM, yyyy");
+      }
+
+      return "Invalid Date Format";
+    } catch (error) {
+      return "Invalid Date";
+    }
+  };
+
   return (
     <div className="container">
-      <div className="single-day-calendar">
-        <div className="calendar-header">
-          <h2>
-            {new Date(date).toLocaleDateString("en-US", {
-              weekday: "long",
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
-          </h2>
-        </div>
-        <div className="tasks-list">
-          {tasks.length > 0 ? (
-            tasks.map((task, index) => (
-              <div key={index} className="task-item">
-                <div className="task-time">{task.time}</div>
-                <div className="task-title">{task.title}</div>
-                <div className="task-date">({task.date})</div> {/* Optionally show the date */}
+      {Object.keys(groupedTasks).length > 0 ? (
+        Object.keys(groupedTasks).map((date, index) => (
+          <div key={index} className="date-group">
+            <div
+              className="date-header"
+              onClick={() => toggleDateExpansion(date)}
+            >
+              <h3>{formatDate(date)}</h3>
+              <ChevronDownIcon
+                className={`arrow-icon ${
+                  expandedDates.includes(date) ? "open" : ""
+                }`}
+                style={{ width: "16px", height: "16px" }} // Adjust the size here
+              />
+            </div>
+
+            {expandedDates.includes(date) && (
+              <div className="tasks-list">
+                {groupedTasks[date].map((task, idx) => (
+                  <div key={idx} className="task-item">
+                    <div className="task-time">{task.time}</div>
+                    <div className="task-title">{task.title}</div>
+                  </div>
+                ))}
               </div>
-            ))
-          ) : (
-            <div>No tasks available</div>
-          )}
-        </div>
-      </div>
+            )}
+          </div>
+        ))
+      ) : (
+        <div>No tasks available</div>
+      )}
     </div>
   );
 };

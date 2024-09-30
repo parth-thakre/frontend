@@ -56,19 +56,24 @@ const Tabs: React.FC = () => {
 
   const handleSummarizeFile = () => {
     if (extractedText) {
-      // Trigger summarization
-      // Just update the state as it will trigger re-render
-      setExtractedText(extractedText);
+      setExtractedText(extractedText); // This triggers summarization
     }
   };
 
   const renderContent = () => {
     switch (activeTab) {
       case "calendar":
-        return extractedText ? <Calendar text={extractedText} /> : <div>No text available</div>;
+        return extractedText ? (
+          <Calendar text={extractedText} />
+        ) : (
+          <div>No text available</div>
+        );
       case "fileSummarizer":
         return (
-          <FileSummarizer text={extractedText} onSummarize={handleSummarizeFile} />
+          <FileSummarizer
+            text={extractedText}
+            onSummarize={handleSummarizeFile}
+          />
         );
       default:
         return null;
