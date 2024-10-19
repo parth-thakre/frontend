@@ -113,8 +113,9 @@ const Calendar: React.FC<CalendarProps> = ({ text }) => {
               <div className="tasks-list">
                 {groupedTasks[date].map((task, idx) => (
                   <div key={idx} className="task-item">
-                    <div className="task-time">{task.time}</div>
                     <div className="task-title">{task.title}</div>
+                    <div className="task-time">{task.time}</div>
+                    
                   </div>
                 ))}
               </div>
