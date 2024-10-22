@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { format } from "date-fns"; // Import date-fns for formatting
+import { format } from "date-fns";
 import { ChevronDownIcon } from "@heroicons/react/24/solid";
 import "./Calendar.css";
 
@@ -11,7 +11,7 @@ interface Task {
 }
 
 interface CalendarProps {
-  text: string; // Text to extract events from
+  text: string;
 }
 
 const Calendar: React.FC<CalendarProps> = ({ text }) => {
@@ -20,9 +20,11 @@ const Calendar: React.FC<CalendarProps> = ({ text }) => {
     {}
   );
   const [expandedDates, setExpandedDates] = useState<string[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchEvents = async () => {
+      setLoading(true);
       try {
         const response = await axios.post("http://localhost:5000/events", {
           text,
@@ -49,6 +51,8 @@ const Calendar: React.FC<CalendarProps> = ({ text }) => {
         setGroupedTasks(grouped);
       } catch (error) {
         console.error("Error fetching events:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -73,7 +77,7 @@ const Calendar: React.FC<CalendarProps> = ({ text }) => {
       if (parts.length === 3) {
         const day = parts[0];
         const month = parts[1];
-        const year = `20${parts[2]}`; // Assuming the year is in 20XX format
+        const year = `20${parts[2]}`;
 
         const formattedDateString = `${year}-${month}-${day}`;
         const parsedDate = new Date(formattedDateString);
@@ -93,7 +97,9 @@ const Calendar: React.FC<CalendarProps> = ({ text }) => {
 
   return (
     <div className="container">
-      {Object.keys(groupedTasks).length > 0 ? (
+      {loading ? ( 
+        <div className="loading">Loading events...</div>
+      ) : Object.keys(groupedTasks).length > 0 ? (
         Object.keys(groupedTasks).map((date, index) => (
           <div key={index} className="date-group">
             <div
@@ -105,7 +111,7 @@ const Calendar: React.FC<CalendarProps> = ({ text }) => {
                 className={`arrow-icon ${
                   expandedDates.includes(date) ? "open" : ""
                 }`}
-                style={{ width: "16px", height: "16px" }} // Adjust the size here
+                style={{ width: "16px", height: "16px" }} 
               />
             </div>
 
@@ -115,7 +121,6 @@ const Calendar: React.FC<CalendarProps> = ({ text }) => {
                   <div key={idx} className="task-item">
                     <div className="task-title">{task.title}</div>
                     <div className="task-time">{task.time}</div>
-                    
                   </div>
                 ))}
               </div>
