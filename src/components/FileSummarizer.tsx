@@ -10,7 +10,7 @@ const FileSummarizer: React.FC<FileSummarizerProps> = ({
   onSummarize,
 }) => {
   const [summary, setSummary] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false); // Initialize with false
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     if (text) {

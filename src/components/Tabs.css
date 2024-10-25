@@ -76,3 +76,47 @@
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
   color: white;
 }
+/* Email button next to 'Choose File' */
+.email-button {
+  background-color: #2c2c2e;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-left: 5px;
+  border-radius: 8px;
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.email-button:hover {
+  background-color: #3a3a3c;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Button in email popup */
+.popup-content button {
+  background-color: #4caf50;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 10px;
+  margin-right: 10px;
+  transition: background-color 0.3s;
+}
+
+.popup-content button:hover {
+  background-color: #45a049;
+}
+
+/* Cancel button in email popup */
+.popup-content button:last-of-type {
+  background-color: #f44336;
+}
+
+.popup-content button:last-of-type:hover {
+  background-color: #e53935;
+}
