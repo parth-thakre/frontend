@@ -368,6 +368,7 @@ from bs4 import BeautifulSoup
 import credentials  # Your credentials file
 from pymongo import MongoClient
 
+
 # MongoDB connection setup
 client = MongoClient("mongodb://localhost:27017/")
 db = client["emailDB"]
@@ -380,7 +381,9 @@ def fetch_emails():
 
     # Select inbox
     mail.select("inbox")
-    result, data = mail.search(None, 'X-GM-RAW', 'is:important')
+    
+    # Fetch all emails (no filter for importance)
+    result, data = mail.search(None, 'ALL')
 
     email_ids = data[0].split()
     emails = []
@@ -427,6 +430,13 @@ def fetch_emails():
     mail.logout()
     return jsonify(emails)
 
+# Automatically fetch emails if credentials already exist
+if os.path.exists("credentials.py"):
+    try:
+        fetch_emails()
+    except Exception as e:
+        print(f"Error fetching emails at startup: {e}")
+        
 @app.route('/save-credentials', methods=['POST'])
 def save_credentials():
     data = request.json
@@ -434,21 +444,21 @@ def save_credentials():
     password = data.get('password')
 
     try:
-        # Attempt to open and write to credentials.py
         file_path = os.path.join(os.path.dirname(__file__), 'credentials.py')
         with open(file_path, 'w') as f:
             f.write(f'EMAIL = "{email}"\n')
             f.write(f'PASSWORD = "{password}"\n')
-        
-        # Log success
+
         print("Credentials successfully saved to credentials.py")
+
+        # Trigger fetch_emails after saving credentials
+        fetch_emails()
 
         response = {
             "message": "Credentials saved successfully",
             "email": email
         }
     except Exception as e:
-        # Log any error that occurs
         print("An error occurred:", e)
         response = {
             "message": "Failed to save credentials",
