@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import JSZip from "jszip";
 import Calendar from "./Calendar";
 import FileSummarizer from "./FileSummarizer";
-import EmailPopup from "./EmailPopup"; // Import EmailPopup
+import EmailPopup from "./EmailPopup";
 import "./Tabs.css";
 
 const Tabs: React.FC = () => {
@@ -15,7 +15,45 @@ const Tabs: React.FC = () => {
   const handleFileChange = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    // Existing file handling code
+    if (event.target.files) {
+      const selectedFile = event.target.files[0];
+      const fileExtension = selectedFile.name.split(".").pop()?.toLowerCase();
+
+      if (fileExtension === "zip" || selectedFile.type === "application/zip") {
+        setFile(selectedFile);
+        setError(""); // Clear any previous error
+        try {
+          const extractedText = await extractTextFromZip(selectedFile);
+          setExtractedText(extractedText);
+        } catch (extractionError) {
+          setError("Failed to extract text from the ZIP file.");
+        }
+      } else {
+        setFile(null);
+        setExtractedText(null);
+        setError("Please upload a ZIP file.");
+      }
+    }
+  };
+
+  const extractTextFromZip = async (file: File): Promise<string> => {
+    const zip = new JSZip();
+    const content = await zip.loadAsync(file);
+    let textContent = "";
+
+    // Loop through files in the ZIP and extract the first .txt file
+    for (const fileName in content.files) {
+      if (fileName.endsWith(".txt")) {
+        textContent = await content.files[fileName].async("text");
+        break;
+      }
+    }
+
+    if (!textContent) {
+      throw new Error("No .txt file found in the ZIP.");
+    }
+
+    return textContent;
   };
 
   const handleEmailSubmit = (email: string, password: string) => {
