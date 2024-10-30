@@ -9,6 +9,8 @@ from flask_cors import CORS
 from dateparser import parse
 from datetime import datetime, timedelta
 import re
+import os
+
 
 app = Flask(__name__)
 CORS(app)  # Allow CORS
@@ -153,19 +155,17 @@ def get_next_day_by_name(today, day_name):
     return today + timedelta(days_ahead)
 
 
-from datetime import datetime
-import re
-from dateparser import parse
 
 def remove_am_pm(event_text):
     """Remove 'am' and 'pm' from the event text."""
     return event_text.replace(" am", "").replace(" pm", "")
 
-from datetime import datetime
-import spacy
 
 # Load spaCy English model
 nlp = spacy.load("en_core_web_sm")
+
+
+import re
 
 def split_sentences(sentence: str) -> list:
     """Split a sentence by commas or 'and' only if multiple timings are present."""
@@ -182,7 +182,6 @@ def split_sentences(sentence: str) -> list:
     
     # If only one or no time found, return the sentence as a single item list
     return [sentence.strip()]
-
 def extract_event_details(sentence, current_date=None):
     """Extract event details from the sentence."""
     doc = nlp(sentence)
@@ -289,7 +288,8 @@ def process_paragraph(paragraph: str) -> list:
         split_sentences_list = split_sentences(sentence)
         for seg in split_sentences_list:
             event_details, current_date = extract_event_details(seg, current_date)  # Pass current_date and receive updated current_date
-            schedule.append(event_details)
+            if event_details:  # Append only if event details are valid
+                schedule.append(event_details)
 
     # Ensure each event has consistent fields
     return [
@@ -300,9 +300,6 @@ def process_paragraph(paragraph: str) -> list:
         }
         for item in schedule if item is not None
     ]
-
-
-
 
 def summarize_text(text):
     summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
@@ -324,10 +321,26 @@ def summarize_text(text):
 def summarize():
     data = request.json
     text = data.get('text')
+    
+    # Check if text was provided
     if not text:
         return jsonify({"error": "No text provided"}), 400
+    
+    # Fetch email bodies stored in MongoDB and deduplicate
+    emails = collection.find({}, {"_id": 0, "body": 1})
+    email_bodies = list(set([email["body"] for email in emails]))  # Deduplicate emails
+    
+    # Combine the provided text with the email bodies
+    # if email_bodies:
+        # combined_text = text + " ".join(email_bodies)
+    # else:
+        # combined_text=text
+    # Generate summary for the combined text
+    # summary = summarize_text(combined_text)
     summary = summarize_text(text)
+    
     return jsonify({"summary": summary})
+
 
 @app.route('/events', methods=['POST'])
 def events():
@@ -335,14 +348,130 @@ def events():
     data = request.json
     text = data.get('text', '')
 
-    if not text:
+    # fetch_emails()
+
+    
+    # Fetch email bodies from MongoDB and deduplicate
+    emails = collection.find({}, {"_id": 0, "body": 1})  # Retrieve email bodies from MongoDB
+    email_bodies = list(set([email["body"] for email in emails]))  # Deduplicate emails
+
+    if not text and not email_bodies:
         return jsonify({"error": "No text provided"}), 400
+    
+    
+    # Combine the provided text with the email bodies
+    if email_bodies:
+        combined_text = text + " " + " ".join(email_bodies)  # Combine the input text with email bodies
+    else:
+        combined_text = text
 
     try:
-        event_details = process_paragraph(text)
+        # event_details = process_paragraph(text)
+        event_details = process_paragraph(combined_text)  # Process the combined text
         return jsonify({"events": event_details})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+import imaplib
+import email
+from bs4 import BeautifulSoup
+# import credentials  # Your credentials file
+from pymongo import MongoClient
+
+
+# MongoDB connection setup
+client = MongoClient("mongodb://localhost:27017/")
+db = client["emailDB"]
+collection = db["emails"]
+
+@app.route('/fetch-emails', methods=['GET'])
+def fetch_emails():
+    """Fetches emails using saved credentials and stores them in MongoDB."""
+    try:
+        # Import saved credentials
+        import credentials  # Assumes 'credentials.py' exists after saving
+
+        # Connect to email server
+        mail = imaplib.IMAP4_SSL("imap.gmail.com")
+        mail.login(credentials.EMAIL, credentials.PASSWORD)
+
+        # Select inbox and fetch all emails
+        mail.select("inbox")
+        result, data = mail.search(None, 'ALL')
+        email_ids = data[0].split()
+        emails = []
+
+        for email_id in email_ids:
+            result, msg_data = mail.fetch(email_id, "(RFC822)")
+            raw_email = msg_data[0][1]
+            msg = email.message_from_bytes(raw_email)
+
+            subject = msg["subject"]
+            from_ = msg["from"]
+
+            if msg.is_multipart():
+                for part in msg.walk():
+                    content_type = part.get_content_type()
+                    if content_type == "text/plain" or content_type == "text/html":
+                        body = part.get_payload(decode=True)
+                        text = BeautifulSoup(body, "html.parser").get_text() if content_type == "text/html" else body.decode()
+                        email_data = {"subject": subject, "from": from_, "body": text}
+                        emails.append(email_data)
+                        collection.insert_one(email_data)  # Insert email data into MongoDB
+            else:
+                body = msg.get_payload(decode=True)
+                email_data = {"subject": subject, "from": from_, "body": body.decode()}
+                emails.append(email_data)
+                collection.insert_one(email_data)
+
+        mail.logout()
+       
+        return jsonify({"emails": emails})
+
+    except Exception as e:
+        print("An error occurred:", e)
+        return jsonify({"error": str(e)}), 500
+
+# Automatically fetch emails if credentials already exist
+# if os.path.exists("credentials.py"):
+#     try:
+#         fetch_emails()
+#     except Exception as e:
+#         print(f"Error fetching emails at startup: {e}")
+        
+@app.route('/save-credentials', methods=['POST'])
+def save_credentials():
+    data = request.json
+    email = data.get('email')
+    password = data.get('password')
+
+    try:
+        file_path = os.path.join(os.path.dirname(__file__), 'credentials.py')
+        with open(file_path, 'w') as f:
+            f.write(f'EMAIL = "{email}"\n')
+            f.write(f'PASSWORD = "{password}"\n')
+
+        print("Credentials successfully saved to credentials.py")
+
+        
+# Trigger fetch_emails after saving credentials
+        fetch_emails()
+        response = {
+            "message": "Credentials saved successfully",
+            "email": email
+        }
+
+
+    except Exception as e:
+        print("An error occurred:", e)
+        response = {
+            "message": "Failed to save credentials",
+            "error": str(e)
+        }
+    
+    
+    return jsonify(response)
 
 if __name__ == "__main__":
     app.run(debug=True)
