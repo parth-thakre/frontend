@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./EmailPopup.css";
-import axios from 'axios';
+import axios from "axios";
 interface EmailPopupProps {
   onSubmit: (email: string, password: string) => void;
   onClose: () => void;
@@ -10,23 +10,18 @@ const EmailPopup: React.FC<EmailPopupProps> = ({ onSubmit, onClose }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-
-
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  try {
-    await axios.post("http://localhost:5000/save-credentials", {
-      email,
-      password,
-    });
-    alert("Credentials saved successfully!");
-  } catch (error) {
-    console.error("Error saving credentials:", error);
-    alert("Failed to save credentials.");
-  }
-  onClose();
-};
-
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await axios.get("http://localhost:5000/fetch-emails", {
+        timeout: 600000,
+      });
+      alert("Emails fetched successfully!");
+    } catch (error) {
+      console.error("An error occurred:", error);
+      alert("Failed to get emails");
+    }
+  };
 
   return (
     <div className="email-popup">
