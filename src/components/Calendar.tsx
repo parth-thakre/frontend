@@ -29,7 +29,8 @@ const Calendar: React.FC<CalendarProps> = ({ text }) => {
         const response = await axios.post("http://localhost:5000/events", {
           text,
         });
-        const schedule = response.data.events;
+        console.log("Response data:", response.data);
+        const schedule = response.data.events || [];
 
         const formattedTasks = schedule.map((event: any) => ({
           time: event.Time || "No Time",
@@ -48,6 +49,7 @@ const Calendar: React.FC<CalendarProps> = ({ text }) => {
           return acc;
         }, {});
 
+        console.log("Grouped tasks:", grouped); // Check the grouped structure
         setGroupedTasks(grouped);
       } catch (error) {
         console.error("Error fetching events:", error);
@@ -97,7 +99,7 @@ const Calendar: React.FC<CalendarProps> = ({ text }) => {
 
   return (
     <div className="container">
-      {loading ? ( 
+      {loading ? (
         <div className="loading">Loading events...</div>
       ) : Object.keys(groupedTasks).length > 0 ? (
         Object.keys(groupedTasks).map((date, index) => (
@@ -111,10 +113,9 @@ const Calendar: React.FC<CalendarProps> = ({ text }) => {
                 className={`arrow-icon ${
                   expandedDates.includes(date) ? "open" : ""
                 }`}
-                style={{ width: "16px", height: "16px" }} 
+                style={{ width: "16px", height: "16px" }}
               />
             </div>
-
             {expandedDates.includes(date) && (
               <div className="tasks-list">
                 {groupedTasks[date].map((task, idx) => (

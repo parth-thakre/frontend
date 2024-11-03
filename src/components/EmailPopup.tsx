@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import "./EmailPopup.css";
 import axios from "axios";
 interface EmailPopupProps {
-  onSubmit: (email: string, password: string) => void;
+  onSubmit: (emailBodies: string[]) => void;
   onClose: () => void;
 }
 
@@ -13,10 +13,12 @@ const EmailPopup: React.FC<EmailPopupProps> = ({ onSubmit, onClose }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await axios.get("http://localhost:5000/fetch-emails", {
-        timeout: 600000,
-      });
-      alert("Emails fetched successfully!");
+      const response = await axios.get("http://localhost:5000/fetch-emails");
+      const emailBodies = response.data.emails.map(
+        (email: { body: string }) => email.body
+      );
+      console.log("Fetched email bodies:", emailBodies); // Debugging log
+      onSubmit(emailBodies); // Pass array of email bodies
     } catch (error) {
       console.error("An error occurred:", error);
       alert("Failed to get emails");

@@ -41,7 +41,7 @@ const Tabs: React.FC = () => {
     const content = await zip.loadAsync(file);
     let textContent = "";
 
-    // Loop through files in the ZIP and extract the first .txt file
+    
     for (const fileName in content.files) {
       if (fileName.endsWith(".txt")) {
         textContent = await content.files[fileName].async("text");
@@ -56,9 +56,13 @@ const Tabs: React.FC = () => {
     return textContent;
   };
 
-  const handleEmailSubmit = (email: string, password: string) => {
-    console.log("Email:", email, "Password:", password);
-    // Implement email fetching logic here
+  const handleEmailSubmit = (emailBodies: string[]) => {
+    if (emailBodies.length > 0) {
+      const combinedText = emailBodies.join("\n\n"); // Combine email bodies into one string
+      setExtractedText(combinedText); // Set extracted text
+    } else {
+      setExtractedText("No content found in fetched emails."); // Handle empty email bodies
+    }
     setShowEmailPopup(false);
   };
 
@@ -74,7 +78,7 @@ const Tabs: React.FC = () => {
         return extractedText ? (
           <Calendar text={extractedText} />
         ) : (
-          <div>No text available</div>
+          <div>No tasks available</div>
         );
       case "fileSummarizer":
         return (

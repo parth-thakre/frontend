@@ -387,6 +387,8 @@ collection = db["emails"]
 
 import traceback
 
+from bson import ObjectId
+
 @app.route('/fetch-emails', methods=['GET'])
 def fetch_emails():
     """Fetches emails using saved credentials and stores them in MongoDB."""
@@ -396,53 +398,47 @@ def fetch_emails():
 
         # Connect to email server
         mail = imaplib.IMAP4_SSL("imap.gmail.com")
-        try:
-            mail.login("testemailminiproj@gmail.com", "bilb htsi xtwa rdkw")
-        except Exception as e:
-            print("Login error:", e)
-            return jsonify({"error": "Login failed"}), 500
+        mail.login("testemailminiproj@gmail.com", "bilb htsi xtwa rdkw")
 
-        # Select inbox and fetch emails
+        # Select inbox and fetch all emails
         mail.select("inbox")
         result, data = mail.search(None, 'ALL')
         email_ids = data[0].split()
         emails = []
 
         for email_id in email_ids:
-            try:
-                result, msg_data = mail.fetch(email_id, "(RFC822)")
-                raw_email = msg_data[0][1]
-                msg = email.message_from_bytes(raw_email)
+            result, msg_data = mail.fetch(email_id, "(RFC822)")
+            raw_email = msg_data[0][1]
+            msg = email.message_from_bytes(raw_email)
 
-                subject = msg["subject"]
-                from_ = msg["from"]
+            subject = msg["subject"]
+            from_ = msg["from"]
 
-                if msg.is_multipart():
-                    for part in msg.walk():
-                        content_type = part.get_content_type()
-                        if content_type == "text/plain" or content_type == "text/html":
-                            body = part.get_payload(decode=True)
-                            text = BeautifulSoup(body, "html.parser").get_text() if content_type == "text/html" else body.decode()
-                            email_data = {"subject": subject, "from": from_, "body": text}
-                            emails.append(email_data)
-                            collection.insert_one(email_data)  # Insert email data into MongoDB
-                else:
-                    body = msg.get_payload(decode=True)
-                    email_data = {"subject": subject, "from": from_, "body": body.decode()}
-                    emails.append(email_data)
-                    collection.insert_one(email_data)
-            except Exception as e:
-                print(f"Error processing email ID {email_id}: {e}")
-                print(traceback.format_exc())
+            if msg.is_multipart():
+                for part in msg.walk():
+                    content_type = part.get_content_type()
+                    if content_type == "text/plain" or content_type == "text/html":
+                        body = part.get_payload(decode=True)
+                        text = BeautifulSoup(body, "html.parser").get_text() if content_type == "text/html" else body.decode()
+                        email_data = {"subject": subject, "from": from_, "body": text}
+                        # Insert into MongoDB and get the inserted ID
+                        inserted_id = collection.insert_one(email_data).inserted_id
+                        email_data["_id"] = str(inserted_id)  # Convert ObjectId to string
+                        emails.append(email_data)
+            else:
+                body = msg.get_payload(decode=True)
+                email_data = {"subject": subject, "from": from_, "body": body.decode()}
+                # Insert into MongoDB and get the inserted ID
+                inserted_id = collection.insert_one(email_data).inserted_id
+                email_data["_id"] = str(inserted_id)  # Convert ObjectId to string
+                emails.append(email_data)
 
         mail.logout()
         return jsonify({"emails": emails})
 
     except Exception as e:
         print("An error occurred:", e)
-        print(traceback.format_exc())
         return jsonify({"error": str(e)}), 500
-
 
 # Automatically fetch emails if credentials already exist
 # if os.path.exists("credentials.py"):
