@@ -341,38 +341,41 @@ def summarize():
     
     return jsonify({"summary": summary})
 
-
 @app.route('/events', methods=['POST'])
 def events():
     """Endpoint to extract event details from the provided text."""
     data = request.json
     text = data.get('text', '')
 
-    # emails=fetch_emails()
-
-    
     # Fetch email bodies from MongoDB and deduplicate
-    emails = collection.find({}, {"_id": 0, "body": 1})  # Retrieve email bodies from MongoDB
-    email_bodies = list(set([email["body"] for email in emails]))  # Deduplicate emails
+    emails = collection.find({}, {"_id": 0, "body": 1})
+    email_bodies = list(set([email["body"] for email in emails]))
 
     if not text and not email_bodies:
         return jsonify({"error": "No text provided"}), 400
-    
-    
-    # Combine the provided text with the email bodies
+
     if email_bodies:
-        combined_text = text + " " + " ".join(email_bodies)  # Combine the input text with email bodies
-        print(combined_text)
+        combined_text = text + " " + " ".join(email_bodies)
     else:
         combined_text = text
 
     try:
-        # event_details = process_paragraph(text)
-        event_details = process_paragraph(combined_text)  # Process the combined text
-        print(combined_text)
-        return jsonify({"events": event_details})
+        # Process the combined text
+        event_details = process_paragraph(combined_text)
+        print("Extracted event details:", event_details)
+
+        # Ensure only unique events are passed
+        unique_events = [dict(t) for t in {tuple(sorted(event.items())) for event in event_details}]
+        print("Unique event details:", unique_events)
+
+        if not unique_events:
+            return jsonify({"error": "No unique events found"}), 404
+
+        return jsonify({"events": unique_events})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
 
 
 import imaplib
