@@ -370,35 +370,26 @@ def extract_event_details(sentence, current_date=None):
 
 def process_paragraph(paragraph: str) -> list:
     """Process a paragraph and extract event details from each sentence."""
-    # Split paragraph by periods, and handle new lines as sentence delimiters
     sentences = [sentence.strip() + '.' for sentence in paragraph.split('.') if sentence.strip()]
-    
-    # Initialize current_date to None for the first sentence
     current_date = None
     schedule = []
-    # print(sentences)
-    # Extract event details from each sentence directly
+
     for sentence in sentences:
-        # Use the split_sentences function to get segments
         split_sentences_list = split_sentences(sentence)
-        print(split_sentences_list)
         for seg in split_sentences_list:
-            print(seg)
-            event_details, current_date = extract_event_details(seg, current_date) 
-             # Pass current_date and receive updated current_date
-            # print(event_details)
-            if event_details:  # Append only if event details are valid
+            event_details, current_date = extract_event_details(seg, current_date)
+            if event_details and event_details not in schedule:  # Deduplicate events
                 schedule.append(event_details)
 
-    # Ensure each event has consistent fields
     return [
         {
             "Event": item.get("Event", "Unknown Event"),
             "Date": item.get("Date", "No Date"),
             "Time": item.get("Time", "No Time")
         }
-        for item in schedule if item is not None
+        for item in schedule
     ]
+
 
 def summarize_text(text):
     summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
