@@ -5,7 +5,7 @@
 /.pnp
 /ZipFilesTesting
 .pnp.js
-
+/backend/token.json
 # testing
 /coverage
 

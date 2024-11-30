@@ -14,35 +14,52 @@
   display: none; /* Hide the default file input */
 }
 
-.custom-file-upload {
-  border: 1px solid #ccc;
-  display: inline-block;
-  padding: 6px 12px;
+.button-container {
+  display: flex; /* Aligns items in a row */
+  justify-content: center; /* Ensures even spacing between buttons */
+  gap: 15px; /* Adds space between buttons */
+}
+
+.custom-file-upload,
+.email-button {
+  background-color: var(--primary-bg-color); /* Consistent background color */
+  color: var(--text-color); /* Text color */
+  border: 1px solid var(--border-color); /* Border color */
+  padding: 10px 20px; /* Padding to make buttons same size */
+  font-size: 16px; /* Font size */
+  font-weight: bold;
+  border-radius: 8px; /* Rounded corners */
   cursor: pointer;
-  background-color: #2c2c2e;
-  color: white;
-  border-radius: 8px;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Transition for smooth effects */
+  display: inline-block; /* Makes buttons inline-block */
+  width: auto; /* Optional: You can remove this if you want the buttons to take their natural width */
 }
 
-.custom-file-upload:hover {
-  background-color: #3a3a3c;
+.custom-file-upload:hover,
+.email-button:hover {
+  background-color: var(--button-hover-bg-color); /* Hover background */
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); /* Hover box-shadow */
 }
 
-/* Style for the file status message */
+.custom-file-upload:disabled,
+.email-button:disabled {
+  background-color: var(--disabled-bg-color); /* Disabled state background */
+  color: var(--disabled-text-color); /* Disabled text color */
+  cursor: not-allowed; /* Show not-allowed cursor */
+}
+
 .file-status {
   display: block;
   margin-top: 10px;
-  color: #4caf50; /* Green color for success */
+  color: var(--success-color);
   font-size: 14px;
   font-weight: bold;
 }
 
-/* Style for the error message */
 .file-error {
   display: block;
   margin-top: 10px;
-  color: #f44336; /* Red color for errors */
+  color: var(--error-color);
   font-size: 14px;
   font-weight: bold;
 }
@@ -54,69 +71,25 @@
 }
 
 .tab-buttons button {
-  background-color: #2c2c2e;
-  color: white;
+  background-color: var(--primary-bg-color);
+  color: var(--text-color);
   border: none;
   padding: 10px 20px;
   cursor: pointer;
   font-size: 16px;
   margin: 0 5px;
   border-radius: 8px;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s ease;
 }
 
 .tab-buttons button.active {
-  background-color: #3a3a3c;
+  background-color: var(--button-hover-bg-color);
 }
 
 .tab-content {
-  background-color: #1c1c1e;
+  background-color: var(--secondary-bg-color);
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-  color: white;
-}
-/* Email button next to 'Choose File' */
-.email-button {
-  background-color: #2c2c2e;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  cursor: pointer;
-  font-size: 16px;
-  margin-left: 5px;
-  border-radius: 8px;
-  transition: background-color 0.3s, box-shadow 0.3s;
-}
-
-.email-button:hover {
-  background-color: #3a3a3c;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-/* Button in email popup */
-.popup-content button {
-  background-color: #4caf50;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 16px;
-  margin-top: 10px;
-  margin-right: 10px;
-  transition: background-color 0.3s;
-}
-
-.popup-content button:hover {
-  background-color: #45a049;
-}
-
-/* Cancel button in email popup */
-.popup-content button:last-of-type {
-  background-color: #f44336;
-}
-
-.popup-content button:last-of-type:hover {
-  background-color: #e53935;
+  color: var(--text-color);
 }

@@ -1,8 +1,21 @@
+:root {
+  --primary-bg-color: #7b6798; /* General background color */
+  --secondary-bg-color: #4d4c7d; /* Secondary background */
+  --tertiary-bg-color: #d8b9c3; /* Accent background */
+  --text-color: #ffffff; /* Primary text color */
+  --border-color: #302a61; /* Border color */
+  --tab-bg-color: #363062; /* Tab background */
+  --button-hover-bg-color: #3a3a3c; /* Hover state for buttons */
+  --success-color: #4caf50; /* Success messages */
+  --error-color: #f44336; /* Error messages */
+}
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background-color: #121212;
-  color: white;
+  background-color: var(
+    --primary-bg-color
+  ); /* Change background to primary-bg-color */
+  color: var(--text-color); /* Text color */
 }
 
 .App {
@@ -11,4 +24,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  background-color: var(
+    --secondary-bg-color
+  ); /* Change background to secondary-bg-color */
 }

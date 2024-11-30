@@ -22,6 +22,29 @@ const Calendar: React.FC<CalendarProps> = ({ text }) => {
   const [expandedDates, setExpandedDates] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
+  const addEventsToGoogleCalendar = async () => {
+    try {
+      if (tasks.length === 0) {
+        alert("No tasks to add to Google Calendar.");
+        return;
+      }
+
+      // Call the backend to add events
+      const response = await axios.post("http://localhost:5000/add-events", {
+        events: tasks,
+      });
+
+      if (response.status === 200) {
+        alert("Events successfully added to Google Calendar!");
+      } else {
+        alert("Failed to add events. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error adding events to Google Calendar:", error);
+      alert("An error occurred while adding events.");
+    }
+  };
+
   useEffect(() => {
     const fetchEvents = async () => {
       setLoading(true);
@@ -102,32 +125,42 @@ const Calendar: React.FC<CalendarProps> = ({ text }) => {
       {loading ? (
         <div className="loading">Loading events...</div>
       ) : Object.keys(groupedTasks).length > 0 ? (
-        Object.keys(groupedTasks).map((date, index) => (
-          <div key={index} className="date-group">
-            <div
-              className="date-header"
-              onClick={() => toggleDateExpansion(date)}
+        <>
+          <div className="calendar-actions">
+            <button
+              className="add-to-calendar-btn"
+              onClick={addEventsToGoogleCalendar}
             >
-              <h3>{formatDate(date)}</h3>
-              <ChevronDownIcon
-                className={`arrow-icon ${
-                  expandedDates.includes(date) ? "open" : ""
-                }`}
-                style={{ width: "16px", height: "16px" }}
-              />
-            </div>
-            {expandedDates.includes(date) && (
-              <div className="tasks-list">
-                {groupedTasks[date].map((task, idx) => (
-                  <div key={idx} className="task-item">
-                    <div className="task-title">{task.title}</div>
-                    <div className="task-time">{task.time}</div>
-                  </div>
-                ))}
-              </div>
-            )}
+              Add to Google Calendar
+            </button>
           </div>
-        ))
+          {Object.keys(groupedTasks).map((date, index) => (
+            <div key={index} className="date-group">
+              <div
+                className="date-header"
+                onClick={() => toggleDateExpansion(date)}
+              >
+                <h3>{formatDate(date)}</h3>
+                <ChevronDownIcon
+                  className={`arrow-icon ${
+                    expandedDates.includes(date) ? "open" : ""
+                  }`}
+                  style={{ width: "16px", height: "16px" }}
+                />
+              </div>
+              {expandedDates.includes(date) && (
+                <div className="tasks-list">
+                  {groupedTasks[date].map((task, idx) => (
+                    <div key={idx} className="task-item">
+                      <div className="task-title">{task.title}</div>
+                      <div className="task-time">{task.time}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </>
       ) : (
         <div>No tasks available</div>
       )}
