@@ -1,46 +1,121 @@
-# Getting Started with Create React App
+# Event Extraction & Calendar Integration API
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This Flask-based web application extracts events from text (emails, user input) and integrates them into **Google Calendar**. It utilizes **Natural Language Processing (NLP)** techniques to parse and understand event details.
 
-## Available Scripts
+## 🚀 Features
 
-In the project directory, you can run:
+- **📌 Event Extraction**: Identifies events, dates, and times from unstructured text.
+- **📬 Email Processing**: Fetches emails from Gmail API and extracts relevant event details.
+- **📝 Text Summarization**: Uses **Facebook BART transformer model** to summarize text.
+- **📅 Google Calendar Integration**: Adds extracted events to the user's Google Calendar.
+- **🔍 NLP-based Processing**: Utilizes **spaCy, NLTK, and regex-based parsing** for text analysis.
 
-### `npm start`
+---
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## 📂 Project Structure
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+```
+📦 project-folder
+ ┣ 📜 app19.py       # Main Flask application
+ ┣ 📜 requirements.txt # Dependencies
+ ┣ 📜 credentials.json # Google API credentials (OAuth)
+ ┣ 📜 token.json     # User authentication token
+ ┗ 📜 README.md      # Project Documentation
+```
 
-### `npm test`
+---
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## 🛠 Setup & Installation
 
-### `npm run build`
+### **1️⃣ Install Dependencies**
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```bash
+pip install -r requirements.txt
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### **2️⃣ Set Up Google API Credentials**
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+1. Go to [Google Developer Console](https://console.developers.google.com/)
+2. Create a **new project** and enable the following APIs:
+   - **Gmail API**
+   - **Google Calendar API**
+3. Download `credentials.json` and place it in the project folder.
 
-### `npm run eject`
+### **3️⃣ Run the Flask App**
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+```bash
+python app19.py
+```
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### **4️⃣ Authenticate with Google**
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+- On first run, visit the provided authentication URL.
+- Authorize the app and allow access to Gmail & Calendar.
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+---
 
-## Learn More
+## 🔗 API Endpoints
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+| Endpoint        | Method | Description                              |
+| --------------- | ------ | ---------------------------------------- |
+| `/summarize`    | POST   | Summarizes input text                    |
+| `/events`       | POST   | Extracts events from text                |
+| `/fetch-emails` | GET    | Fetches emails from Gmail                |
+| `/add-events`   | POST   | Adds extracted events to Google Calendar |
+| `/sign-out`     | POST   | Revokes API access                       |
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### **Example Request** (Extract Events)
+
+```bash
+curl -X POST "http://localhost:5000/events" \n -H "Content-Type: application/json" \n -d '{"text": "Meeting with John at 3 PM tomorrow."}'
+```
+
+### **Example Response**
+
+```json
+{
+  "events": [
+    {
+      "Event": "Meeting",
+      "Date": "15-03-24",
+      "Time": "15:00"
+    }
+  ]
+}
+```
+
+---
+
+## 🛡️ Security & Authentication
+
+- Uses **OAuth 2.0** for secure authentication.
+- Tokens are stored locally in `token.json`.
+
+To sign out, use:
+
+```bash
+curl -X POST "http://localhost:5000/sign-out"
+```
+
+---
+
+## 🏗️ Possible Improvements
+
+✅ Enhance NLP accuracy with **transformer models** (e.g., GPT, T5).  
+✅ Handle **recurring events** for better Calendar management.  
+✅ Improve **error handling** for date/time parsing edge cases.
+
+---
+
+## 📜 License
+
+This project is licensed under the **MIT License**.
+
+---
+
+## 🏆 Credits
+
+- Built using **Flask, spaCy, NLTK, Google APIs**.
+- NLP techniques inspired by event extraction research.
+
+Happy coding! 🚀
